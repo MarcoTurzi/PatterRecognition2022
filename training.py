@@ -54,6 +54,41 @@ print(ink_mean)
 ink_std = [np.round(np.std(ink_f_scaled[labels == i]),2) for i in range(10)]
 print(ink_std)
 
+#cross-validation split and Logistic Regression possible coefficients
+kf = KFold(n_splits=10, shuffle=False)
+cross = LogisticRegressionCV(Cs=10, solver="saga", multi_class="multinomial").fit(ink_f_scaled, labels)
+cs = cross.Cs_
+
+i = 0
+
+accuracies = []
+classifiers = []
+
+#training and evaluating classifiers
+for x_train, x_test in kf.split(digits, labels):
+    xtrain_set = ink_f_scaled[x_train]
+    ytrain_set = labels[x_train]
+
+    xtest_set = ink_f_scaled[x_test]
+    ytest_set = labels[x_test]
+
+    print(np.unique(ytrain_set))
+    print(np.unique(ytest_set))
+
+    classifier = LogisticRegression(penalty="l1", C=cs[i], solver="saga", multi_class="multinomial").fit(xtrain_set, ytrain_set)
+    classifiers.append(classifier)
+    
+    i = i + 1
+
+    predict = classifier.predict(xtest_set)
+    accuracies.append(accuracy_score(ytest_set,predict ))
+    '''plot_confusion_matrix(classifier, xtest_set, ytest_set)
+    plt.show()'''
+
+#best classifier based on accuracy and confusion matrix
+best_classifier = classifiers[np.argmax(accuracies)]
+plot_confusion_matrix(best_classifier, ink_f_scaled, labels)
+plt.show()   
 
 # pixel variance analysis
 def getVariances(pixData):
