@@ -3,8 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.preprocessing import scale, StandardScaler
+from sklearn.metrics import accuracy_score, plot_confusion_matrix
+from sklearn.model_selection import KFold
 
-df = pd.read_csv("./data/mnist.csv")
+df = pd.read_csv('mnist.csv')
 df_values = df.values
 print(df_values)
 labels = df_values[:, 0]
@@ -55,6 +57,7 @@ print(ink_std)
 
 #cross-validation split and Logistic Regression possible coefficients
 kf = KFold(n_splits=10, shuffle=False)
+ink_f_scaled.reshape(1, -1)
 cross = LogisticRegressionCV(Cs=10, solver="saga", multi_class="multinomial").fit(ink_f_scaled, labels)
 cs = cross.Cs_
 
