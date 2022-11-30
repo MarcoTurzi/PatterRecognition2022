@@ -57,7 +57,8 @@ print(ink_std)
 
 #cross-validation split and Logistic Regression possible coefficients
 kf = KFold(n_splits=10, shuffle=False)
-ink_f_scaled.reshape(1, -1)
+ink_f_scaled = np.reshape(ink_f_scaled, (-1, 1))
+# labels = np.reshape(labels, (-1, 1))
 cross = LogisticRegressionCV(Cs=10, solver="saga", multi_class="multinomial").fit(ink_f_scaled, labels)
 cs = cross.Cs_
 
