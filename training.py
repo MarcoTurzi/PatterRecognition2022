@@ -114,7 +114,22 @@ def getMeansPerDigit(digits, labels, save = False):
     for i in range(10):
         getMeans(getAllDataForLabel(digits,labels,i),save=save, saveName= "Figure means digit " + str(i))
 
+def getOutsideClassStd(digits, labels):
+    res = np.std(digits, axis=0)
 
+    for i in range(10):
+        res -= np.std(getAllDataForLabel(digits,labels,i), axis=0)*0.1
+    i = 1
+    while plt.fignum_exists(i):
+        i += 1
+    plt.figure(i)
+    plot = plt.imshow(res.reshape(28, 28))
+    plt.colorbar(label='Standard deviation between classes')
+    plt.xlabel('x-coordinate pixel')
+    plt.ylabel('y-coordinate pixel')
+    plt.show()
+    # plt.close()
+    return res
 
 def getDataDistribution(labels, returnAsLatexTable= False):
     df = pd.DataFrame(pd.Series(labels).value_counts(),columns=['frequency'])
