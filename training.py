@@ -28,7 +28,8 @@ print(maj)
 perc = counts[maj]/np.sum(counts)
 print(perc*100,"%")'''
 
-
+def getAllDataForLabel(digits, labels, label):
+    return [digits[i] for i in range(digits.shape[0]) if labels[i]==label]
 def ink_features(values):
     ink = np.array([])
     for row in values:
@@ -57,28 +58,62 @@ print(ink_std)
 # pixel variance analysis
 def getStds(pixData):
     stds = np.std(pixData, axis=0)
-
-
-    plt.imshow(stds.reshape(28, 28))
+    i = 1
+    while plt.fignum_exists(i):
+        i += 1
+    plt.figure(i)
+    plot = plt.imshow(stds.reshape(28, 28))
     plt.colorbar(label = 'Standard deviation over all samples')
     plt.xlabel('x-coordinate pixel')
     plt.ylabel('y-coordinate pixel')
     plt.show()
+    #plt.close()
     return stds
 
-tds = getStds(digits)
-def getMeans(pixData):
+#stds = getStds(digits)
+def getMeans(pixData, vmax = 255, save = False, saveName = "figure"):
     means = np.mean(pixData, axis=0)
-
-
-    plt.imshow(means.reshape(28, 28))
+    i = 1
+    while plt.fignum_exists(i):
+        i += 1
+    plt.figure(i)
+    plot =plt.imshow(means.reshape(28, 28), vmin = 0, vmax = vmax)
     plt.colorbar(label = 'Mean over all samples')
     plt.xlabel('x-coordinate pixel')
     plt.ylabel('y-coordinate pixel')
     plt.show()
+    #plt.close()
+    if save:
+        plt.savefig(fname="./output/dataplots/" + saveName + ".png",format='png')
     return means
 
-means = getMeans(digits)
+#means = getMeans(digits,150)
+
+
+def getDigitMeansMinusTotalMeans(digits, labels, digitLabel, save = False, saveName = "figure"):
+    meanD = np.mean(getAllDataForLabel(digits,labels,digitLabel), axis = 0)
+    meanT = np.mean(digits, axis = 0)
+    diff = meanD - meanT
+    i = 1
+    while plt.fignum_exists(i):
+        i += 1
+    plt.figure(i)
+    plot =plt.imshow(diff.reshape(28, 28),vmin=-125,vmax=150)
+    plt.colorbar(label = 'Class mean with respect to mean over all samples')
+    plt.xlabel('x-coordinate pixel')
+    plt.ylabel('y-coordinate pixel')
+    plt.show()
+    if save:
+        plt.savefig(fname="./output/dataplots/" + saveName + ".png",format='png')
+    return diff
+
+def getRelativeMeansPerDigit(digits, labels, save=False):
+    for i in range(10):
+        getDigitMeansMinusTotalMeans(digits,labels,i, save=save,saveName="Figure rel means digit "+str(i))
+def getMeansPerDigit(digits, labels, save = False):
+    for i in range(10):
+        getMeans(getAllDataForLabel(digits,labels,i),save=save, saveName= "Figure means digit " + str(i))
+
 
 
 def getDataDistribution(labels, returnAsLatexTable= False):
