@@ -94,16 +94,44 @@ plot_confusion_matrix(best_classifier, ink_f_scaled, labels)
 plt.show()   
 
 # pixel variance analysis
-def getVariances(pixData):
-    vars = np.var(pixData, axis=0)
-    print('Variance per pixel')
-    plt.imshow(vars.reshape(28, 28))
-    plt.colorbar()
+def getStds(pixData):
+    stds = np.std(pixData, axis=0)
+
+
+    plt.imshow(stds.reshape(28, 28))
+    plt.colorbar(label = 'Standard deviation over all samples')
+    plt.xlabel('x-coordinate pixel')
+    plt.ylabel('y-coordinate pixel')
     plt.show()
-    return vars
+    return stds
+
+tds = getStds(digits)
+def getMeans(pixData):
+    means = np.mean(pixData, axis=0)
 
 
-vars = getVariances(digits)
+    plt.imshow(means.reshape(28, 28))
+    plt.colorbar(label = 'Mean over all samples')
+    plt.xlabel('x-coordinate pixel')
+    plt.ylabel('y-coordinate pixel')
+    plt.show()
+    return means
+
+means = getMeans(digits)
+
+
+def getDataDistribution(labels, returnAsLatexTable= False):
+    df = pd.DataFrame(pd.Series(labels).value_counts(),columns=['frequency'])
+    df['label'] = df.index
+    df = df.sort_values(by='label')
+    df = df[['label', 'frequency']]
+    if returnAsLatexTable:
+        df = df.transpose()
+        return df.to_latex()
+
+    return df
+
+
 
 
 # Center feature extracting
@@ -139,4 +167,4 @@ def extractCenters(pixData):
 
 # Extracting this feature takes quite some time and its usability is questionable
 # Uncomment next line if you want to extract it
-# XCents = extractCenters(digits)
+#XCents = extractCenters(digits)
