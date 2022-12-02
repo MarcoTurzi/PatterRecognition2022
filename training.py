@@ -2,9 +2,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-from sklearn.preprocessing import scale, StandardScaler
+from sklearn.preprocessing import scale, StandardScaler, MaxAbsScaler
 from sklearn.metrics import accuracy_score, plot_confusion_matrix
 from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+import cv2
+
 
 df = pd.read_csv('mnist.csv')
 df_values = df.values
