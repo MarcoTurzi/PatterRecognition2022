@@ -29,6 +29,26 @@ maj = np.argmax(counts)
 print(maj)
 perc = counts[maj]/np.sum(counts)
 print(perc*100,"%")'''
+def new_feature(values):
+    f_circles = np.array([])
+    i = 0
+    for row in values:
+        img = np.array(row).reshape((28,28))
+        count = 0
+        for row in img:
+            
+            check = 0
+            for pix in row:
+                if pix > 0 and check == 0:
+                    check = check + 1
+                if pix == 0 and check == 1:
+                    check = check + 1
+                if pix > 0 and check == 2:
+                    count = count + 1
+                    break
+
+        f_circles = np.append(f_circles, count)
+    return f_circles
 
 def getAllDataForLabel(digits, labels, label):
     return [digits[i] for i in range(digits.shape[0]) if labels[i]==label]
@@ -93,6 +113,110 @@ for x_train, x_test in kf.split(digits, labels):
 best_classifier = classifiers[np.argmax(accuracies)]
 plot_confusion_matrix(best_classifier, ink_f_scaled, labels)
 plt.show()   
+
+features = [[sum, avg] for sum,avg in zip(ink_features(digits), new_feature(digits))]
+feat_scaled = scale(features)
+cross = LogisticRegressionCV(Cs=10,penalty="l1", solver="saga", multi_class="multinomial").fit(feat_scaled, labels)
+cs = cross.Cs_
+
+i = 0
+
+accuracies = []
+classifiers = []
+
+#training and evaluating classifiers
+for x_train, x_test in kf.split(digits, labels):
+    xtrain_set = feat_scaled[x_train]
+    ytrain_set = labels[x_train]
+
+    xtest_set = feat_scaled[x_test]
+    ytest_set = labels[x_test]
+
+    
+    classifier = LogisticRegression(penalty="l1", C=cs[i], solver="saga", multi_class="multinomial").fit(xtrain_set, ytrain_set)
+    classifiers.append(classifier)
+    
+    i = i + 1
+
+    predict = classifier.predict(xtest_set)
+    accuracies.append(accuracy_score(ytest_set,predict ))
+    '''plot_confusion_matrix(classifier, xtest_set, ytest_set)
+    plt.show()'''
+
+#best classifier based on accuracy and confusion matrix
+best_classifier = classifiers[np.argmax(accuracies)]
+print(np.max(accuracies))
+plot_confusion_matrix(best_classifier, feat_scaled, labels)
+plt.show()   
+
+
+#5.In this part we use the 784 raw pixel values themselves as features
+
+#reducing dimension of the images
+
+new_digits = []
+
+for dig in digits:
+    dig = dig.reshape(28,28)
+    dig = np.array(dig, dtype='uint8')
+    new_dig = cv2.resize(dig, (14,14),interpolation = cv2.INTER_AREA)
+    new_digits.append(np.ravel(new_dig))
+
+#drop features which are always zero
+'''columns = df.columns
+print(columns)
+for col in columns: 
+    print(col)
+    if(df[col] == 0).all():
+        df.drop(col, inplace=True, axis=1)
+   
+digits = df.values[:,1:]'''
+
+'''plt.imshow(new_digits[1].reshape(14, 14))
+plt.colorbar()
+plt.show()'''
+#scaling features
+scaler = MaxAbsScaler()
+digits_scaled = scaler.fit_transform(new_digits)
+
+
+
+#train and test set split 
+x_train, x_test, y_train, y_test = train_test_split(digits, labels, test_size = 37/42, stratify=labels)
+
+cross = LogisticRegressionCV(Cs=10,penalty="l1", solver="saga",tol=0.001, multi_class="multinomial", max_iter=10000).fit(digits_scaled, labels)
+
+cs = cross.Cs_
+
+i = 0
+
+accuracies = []
+classifiers = []
+
+#training and evaluating classifiers
+for x_train_cv, x_test_cv in kf.split(x_train, y_train):
+    xtrain_set = x_train[x_train_cv]
+    ytrain_set = y_train[x_train_cv]
+
+    xtest_set = x_train[x_test_cv]
+    ytest_set = y_train[x_test_cv]
+
+    print("Training classifier n",str(i))
+    classifier = LogisticRegression(penalty="l1", C=cs[i], solver="saga", tol=0.001 ,multi_class="multinomial", max_iter=10000).fit(xtrain_set, ytrain_set)
+    classifiers.append(classifier)
+    
+    i = i + 1
+
+    predict = classifier.predict(xtest_set)
+    accuracies.append(accuracy_score(ytest_set,predict ))
+    '''plot_confusion_matrix(classifier, xtest_set, ytest_set)
+    plt.show()'''
+
+#best classifier based on accuracy and confusion matrix
+best_classifier = classifiers[np.argmax(accuracies)]
+print(np.max(accuracies))
+plot_confusion_matrix(best_classifier, x_test, y_test)
+plt.show()
 
 # pixel variance analysis
 def getStds(pixData):
