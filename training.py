@@ -80,7 +80,7 @@ ink_std = [np.round(np.std(ink_f_scaled[labels == i]), 2) for i in range(10)]
 print(ink_std)
 
 #cross-validation split and Logistic Regression possible coefficients
-kf = KFold(n_splits=10, shuffle=False)
+kf = KFold(n_splits=5, shuffle=False)
 ink_f_scaled = np.reshape(ink_f_scaled, (-1, 1))
 # labels = np.reshape(labels, (-1, 1))
 cross = LogisticRegressionCV(Cs=10, solver="saga", multi_class="multinomial").fit(ink_f_scaled, labels)
@@ -187,35 +187,47 @@ digits_scaled = scaler.fit_transform(new_digits)
 #train and test set split 
 x_train, x_test, y_train, y_test = train_test_split(digits, labels, test_size = 37/42, stratify=labels)
 
-cross = LogisticRegressionCV(Cs=10,penalty="l1", solver="saga",tol=0.001, multi_class="multinomial", max_iter=10000).fit(digits_scaled, labels)
+# cross = LogisticRegressionCV(Cs=[1e-4, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],penalty="l1", solver="saga",tol=0.001, multi_class="multinomial", max_iter=5,
+#                              verbose=2, n_jobs=8).fit(digits_scaled, labels)
+#
+# cs = cross.Cs_
 
-cs = cross.Cs_
-
-i = 0
 
 accuracies = []
 classifiers = []
 
-#training and evaluating classifiers
-for x_train_cv, x_test_cv in kf.split(x_train, y_train):
-    xtrain_set = x_train[x_train_cv]
-    ytrain_set = y_train[x_train_cv]
-
-    xtest_set = x_train[x_test_cv]
-    ytest_set = y_train[x_test_cv]
-
-    print("Training classifier n",str(i))
-    classifier = LogisticRegression(penalty="l1", C=cs[i], solver="saga", tol=0.001 ,multi_class="multinomial", max_iter=10000).fit(xtrain_set, ytrain_set)
+# training and evaluating classifiers
+for l in range(-3,2):
+    c = pow(10,l)
+    i = 0
+    classifier = LogisticRegression(penalty="l1", C=c, solver="saga", tol=0.001, multi_class="multinomial",
+                                        max_iter=500)
     classifiers.append(classifier)
-    
-    i = i + 1
+    accuracy = 0
+    print("Hyperparameter c: ",str(c))
+    for x_train_cv, x_test_cv in kf.split(x_train, y_train):
+        xtrain_set = x_train[x_train_cv]
+        ytrain_set = y_train[x_train_cv]
 
-    predict = classifier.predict(xtest_set)
-    accuracies.append(accuracy_score(ytest_set,predict ))
+        xtest_set = x_train[x_test_cv]
+        ytest_set = y_train[x_test_cv]
+
+        print("Fold", str(i))
+        classifier.fit(xtrain_set, ytrain_set)
+       # classifiers.append(classifier)
+
+        i = i + 1
+
+        predict = classifier.predict(xtest_set)
+        acc = accuracy_score(ytest_set, predict)
+        accuracy += acc
+        print("Accuracy score for c ", str(c), " and fold: ", str(i), " is : ",str(acc))
+    accuracies.append(accuracy * 0.2)
+    print("Avg accuracy for c ", str(c), " is :", str(accuracy*0.2))
     '''plot_confusion_matrix(classifier, xtest_set, ytest_set)
     plt.show()'''
 
-#best classifier based on accuracy and confusion matrix
+# best classifier based on accuracy and confusion matrix
 best_classifier = classifiers[np.argmax(accuracies)]
 print(np.max(accuracies))
 plot_confusion_matrix(best_classifier, x_test, y_test)
