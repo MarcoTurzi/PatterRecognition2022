@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.preprocessing import scale, StandardScaler, MaxAbsScaler
 from sklearn.metrics import accuracy_score, plot_confusion_matrix
@@ -196,14 +197,31 @@ x_train, x_test, y_train, y_test = train_test_split(digits, labels, test_size = 
 accuracies = []
 classifiers = []
 
+fold = [
+    [[0,0,0,0,0], [0,0,0,0,0]],
+    [[0,0,0,0,0], [0,0,0,0,0]],
+    [[0,0,0,0,0], [0,0,0,0,0]],
+    [[0,0,0,0,0], [0,0,0,0,0]],
+    [[0,0,0,0,0], [0,0,0,0,0]]
+
+]
+avgAcc = [[0,0,0,0,0],[0,0,0,0,0]]
+
+cvalues = [0.001, 0.01, 0.1, 1.0, 10.0]
+
+
 # training and evaluating classifiers
 for l in range(-3,2):
     c = pow(10,l)
     i = 0
-    classifier = LogisticRegression(penalty="l1", C=c, solver="saga", tol=0.001, multi_class="multinomial",
+    classifierLR = LogisticRegression(penalty="l1", C=c, solver="saga", tol=0.001, multi_class="multinomial",
                                         max_iter=500)
-    classifiers.append(classifier)
-    accuracy = 0
+
+    classifierSVC = LinearSVC(penalty="l2", C = c, tol = 0.001, multi_class='ovr', max_iter=10000)
+    classifiers.append(classifierSVC)
+    classifiers.append(classifierLR)
+    accuracySVC = 0
+    accuracyLR = 0
     print("Hyperparameter c: ",str(c))
     for x_train_cv, x_test_cv in kf.split(x_train, y_train):
         xtrain_set = x_train[x_train_cv]
@@ -213,23 +231,52 @@ for l in range(-3,2):
         ytest_set = y_train[x_test_cv]
 
         print("Fold", str(i))
-        classifier.fit(xtrain_set, ytrain_set)
-       # classifiers.append(classifier)
+        print("Support Vector Machines")
+        classifierSVC.fit(xtrain_set, ytrain_set)
+        predict = classifierSVC.predict(xtest_set)
+        acc = accuracy_score(ytest_set, predict)
+        accuracySVC += acc
+        fold[i][0][l + 3] = acc
+        print("Accuracy score for c ", str(c), " and fold: ", str(i), " is : ", str(acc))
+
+        print("Logistic Regression")
+        classifierLR.fit(xtrain_set, ytrain_set)
+        predict = classifierLR.predict(xtest_set)
+        acc = accuracy_score(ytest_set, predict)
+        accuracyLR += acc
+        fold[i][1][l + 3] = acc
+        print("Accuracy score for c ", str(c), " and fold: ", str(i), " is : ", str(acc))
+
 
         i = i + 1
 
-        predict = classifier.predict(xtest_set)
-        acc = accuracy_score(ytest_set, predict)
-        accuracy += acc
-        print("Accuracy score for c ", str(c), " and fold: ", str(i), " is : ",str(acc))
-    accuracies.append(accuracy * 0.2)
-    print("Avg accuracy for c ", str(c), " is :", str(accuracy*0.2))
+    accuracies.append(accuracySVC * 0.2)
+    accuracies.append(accuracyLR * 0.2)
+    avgAcc[0][l+3] = accuracySVC * 0.2
+    avgAcc[1][l+3] = accuracyLR * 0.2
+
+
+
+for f in range(5):
+    plt.plot(cvalues, fold[f][0], 'r', fold[f][1], 'b')
+    plt.show()
+
+    print("Avg accuracy for c ", str(c), " is :", str(accuracySVC*0.2))
+    print("Avg accuracy for c ", str(c), " is :", str(accuracyLR*0.2))
+
     '''plot_confusion_matrix(classifier, xtest_set, ytest_set)
     plt.show()'''
 
 # best classifier based on accuracy and confusion matrix
+plt.plot(cvalues, avgAcc[0], 'r', avgAcc[1], 'b')
+plt.show()
 best_classifier = classifiers[np.argmax(accuracies)]
 print(np.max(accuracies))
+
+best_classifier.fit(x_train, y_train)
+predict = best_classifier.predict(x_test)
+finalAcc = accuracy_score(y_test, predict)
+print("Final Accuracy: ", str(finalAcc))
 plot_confusion_matrix(best_classifier, x_test, y_test)
 plt.show()
 
