@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.preprocessing import scale, StandardScaler, MaxAbsScaler
 from sklearn.metrics import accuracy_score, plot_confusion_matrix
@@ -198,26 +198,26 @@ accuracies = []
 classifiers = []
 
 fold = [
-    [[0,0,0,0,0], [0,0,0,0,0]],
-    [[0,0,0,0,0], [0,0,0,0,0]],
-    [[0,0,0,0,0], [0,0,0,0,0]],
-    [[0,0,0,0,0], [0,0,0,0,0]],
-    [[0,0,0,0,0], [0,0,0,0,0]]
+    [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]],
+    [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]],
+    [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]],
+    [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]],
+    [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
 
 ]
-avgAcc = [[0,0,0,0,0],[0,0,0,0,0]]
+avgAcc = [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]
 
-cvalues = [0.001, 0.01, 0.1, 1.0, 10.0]
+cvalues = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0]
 
 
 # training and evaluating classifiers
-for l in range(-3,2):
+for l in range(-4,6):
     c = pow(10,l)
     i = 0
     classifierLR = LogisticRegression(penalty="l1", C=c, solver="saga", tol=0.001, multi_class="multinomial",
-                                        max_iter=500)
+                                        max_iter=15)
 
-    classifierSVC = LinearSVC(penalty="l2", C = c, tol = 0.001, multi_class='ovr', max_iter=10000)
+    classifierSVC = SVC(C = c, tol = 0.001, max_iter=15)
     classifiers.append(classifierSVC)
     classifiers.append(classifierLR)
     accuracySVC = 0
@@ -236,7 +236,7 @@ for l in range(-3,2):
         predict = classifierSVC.predict(xtest_set)
         acc = accuracy_score(ytest_set, predict)
         accuracySVC += acc
-        fold[i][0][l + 3] = acc
+        fold[i][0][l + 4] = acc
         print("Accuracy score for c ", str(c), " and fold: ", str(i), " is : ", str(acc))
 
         print("Logistic Regression")
@@ -244,21 +244,22 @@ for l in range(-3,2):
         predict = classifierLR.predict(xtest_set)
         acc = accuracy_score(ytest_set, predict)
         accuracyLR += acc
-        fold[i][1][l + 3] = acc
+        fold[i][1][l + 4] = acc
         print("Accuracy score for c ", str(c), " and fold: ", str(i), " is : ", str(acc))
-
-
         i = i + 1
 
     accuracies.append(accuracySVC * 0.2)
     accuracies.append(accuracyLR * 0.2)
-    avgAcc[0][l+3] = accuracySVC * 0.2
-    avgAcc[1][l+3] = accuracyLR * 0.2
+    avgAcc[0][l+4] = accuracySVC * 0.2
+    avgAcc[1][l+4] = accuracyLR * 0.2
 
 
 
 for f in range(5):
-    plt.plot(cvalues, fold[f][0], 'r', fold[f][1], 'b')
+    plt.xscale('log')
+    plt.plot(cvalues, fold[f][0], label ='Support Vector Machines')
+    plt.plot(cvalues, fold[f][1], label='Logistic Regression')
+    plt.legend()
     plt.show()
 
     print("Avg accuracy for c ", str(c), " is :", str(accuracySVC*0.2))
@@ -268,7 +269,10 @@ for f in range(5):
     plt.show()'''
 
 # best classifier based on accuracy and confusion matrix
-plt.plot(cvalues, avgAcc[0], 'r', avgAcc[1], 'b')
+plt.xscale('log')
+plt.plot(cvalues, avgAcc[0], label='Support Vector Machines')
+plt.plot(cvalues, avgAcc[1], label='Logistic Regression')
+plt.legend()
 plt.show()
 best_classifier = classifiers[np.argmax(accuracies)]
 print(np.max(accuracies))
