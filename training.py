@@ -221,92 +221,9 @@ print(np.max(accuracies))
 plot_confusion_matrix(best_classifier, x_test, y_test)
 plt.show()
 
-# pixel variance analysis
-def getStds(pixData):
-    stds = np.std(pixData, axis=0)
-    i = 1
-    while plt.fignum_exists(i):
-        i += 1
-    plt.figure(i)
-    plot = plt.imshow(stds.reshape(28, 28))
-    plt.colorbar(label = 'Standard deviation over all samples')
-    plt.xlabel('x-coordinate pixel')
-    plt.ylabel('y-coordinate pixel')
-    plt.show()
-    #plt.close()
-    return stds
-
-#stds = getStds(digits)
-def getMeans(pixData, vmax = 255, save = False, saveName = "figure"):
-    means = np.mean(pixData, axis=0)
-    i = 1
-    while plt.fignum_exists(i):
-        i += 1
-    plt.figure(i)
-    plot =plt.imshow(means.reshape(28, 28), vmin = 0, vmax = vmax)
-    plt.colorbar(label = 'Mean over all samples')
-    plt.xlabel('x-coordinate pixel')
-    plt.ylabel('y-coordinate pixel')
-    plt.show()
-    #plt.close()
-    if save:
-        plt.savefig(fname="./output/dataplots/" + saveName + ".png",format='png')
-    return means
-
-#means = getMeans(digits,150)
 
 
-def getDigitMeansMinusTotalMeans(digits, labels, digitLabel, save = False, saveName = "figure"):
-    meanD = np.mean(getAllDataForLabel(digits,labels,digitLabel), axis = 0)
-    meanT = np.mean(digits, axis = 0)
-    diff = meanD - meanT
-    i = 1
-    while plt.fignum_exists(i):
-        i += 1
-    plt.figure(i)
-    plot =plt.imshow(diff.reshape(28, 28),vmin=-125,vmax=150)
-    plt.colorbar(label = 'Class mean with respect to mean over all samples')
-    plt.xlabel('x-coordinate pixel')
-    plt.ylabel('y-coordinate pixel')
-    plt.show()
-    if save:
-        plt.savefig(fname="./output/dataplots/" + saveName + ".png",format='png')
-    return diff
 
-def getRelativeMeansPerDigit(digits, labels, save=False):
-    for i in range(10):
-        getDigitMeansMinusTotalMeans(digits,labels,i, save=save,saveName="Figure rel means digit "+str(i))
-def getMeansPerDigit(digits, labels, save = False):
-    for i in range(10):
-        getMeans(getAllDataForLabel(digits,labels,i),save=save, saveName= "Figure means digit " + str(i))
-
-def getOutsideClassStd(digits, labels):
-    res = np.std(digits, axis=0)
-
-    for i in range(10):
-        res -= np.std(getAllDataForLabel(digits,labels,i), axis=0)*0.1
-    i = 1
-    while plt.fignum_exists(i):
-        i += 1
-    plt.figure(i)
-    plot = plt.imshow(res.reshape(28, 28))
-    plt.colorbar(label='Standard deviation between classes')
-    plt.xlabel('x-coordinate pixel')
-    plt.ylabel('y-coordinate pixel')
-    plt.show()
-    # plt.close()
-    return res
-
-def getDataDistribution(labels, returnAsLatexTable= False):
-    df = pd.DataFrame(pd.Series(labels).value_counts(),columns=['frequency'])
-    df['label'] = df.index
-    df = df.sort_values(by='label')
-    df = df[['label', 'frequency']]
-    if returnAsLatexTable:
-        df = df.transpose()
-        return df.to_latex()
-
-    return df
 
 
 
