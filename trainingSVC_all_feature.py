@@ -70,9 +70,9 @@ lr = LogisticRegression(penalty="l1", solver="saga", multi_class="multinomial",t
 dictionary = dict(C=uniform(loc=1,scale=2))
 dictionary_lr = dict(C=uniform(loc=1,scale=2) )
 
-cross_SVC = RandomizedSearchCV(svc,n_iter=2,n_jobs=4,param_distributions=dictionary,cv=10,verbose=3 ).fit(x_train,y_train)
+cross_SVC = RandomizedSearchCV(svc,n_iter=50,n_jobs=4,param_distributions=dictionary,cv=10,verbose=3 ).fit(x_train,y_train)
 
-cross_LR = RandomizedSearchCV(lr,n_iter=2,n_jobs=4,param_distributions=dictionary_lr,cv=10,verbose=3 ).fit(x_train,y_train)
+cross_LR = RandomizedSearchCV(lr,n_iter=50,n_jobs=4,param_distributions=dictionary_lr,cv=10,verbose=3 ).fit(x_train,y_train)
 
 #cross = LogisticRegressionCV(verbose=3,n_jobs=4,cv=10,penalty="l1", solver="saga", multi_class="multinomial", max_iter=1000)
 
