@@ -186,7 +186,7 @@ digits_scaled = scaler.fit_transform(new_digits)
 
 
 #train and test set split 
-x_train, x_test, y_train, y_test = train_test_split(digits, labels, test_size = 37/42, stratify=labels)
+x_train, x_test, y_train, y_test = train_test_split(digits_scaled, labels, test_size = 37/42, stratify=labels)
 
 # cross = LogisticRegressionCV(Cs=[1e-4, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],penalty="l1", solver="saga",tol=0.001, multi_class="multinomial", max_iter=5,
 #                              verbose=2, n_jobs=8).fit(digits_scaled, labels)
@@ -214,10 +214,11 @@ cvalues = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0
 for l in range(-4,6):
     c = pow(10,l)
     i = 0
-    classifierLR = LogisticRegression(penalty="l1", C=c, solver="saga", tol=0.001, multi_class="multinomial",
-                                        max_iter=15)
+    classifierLR = LogisticRegression(penalty="l1", C=c, solver="saga",
+                                      tol=0.001, multi_class="multinomial",
+                                        max_iter=10000)
 
-    classifierSVC = SVC(C = c, tol = 0.001, max_iter=15)
+    classifierSVC = SVC(C = c, tol = 0.001, max_iter=10000)
     classifiers.append(classifierSVC)
     classifiers.append(classifierLR)
     accuracySVC = 0
